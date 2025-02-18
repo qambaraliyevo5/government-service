@@ -1,24 +1,31 @@
 "use client"
 
-import { useState } from "react"
-import OperatorDisplay from "../components/OperatorDisplay"
-import CustomerDisplay from "../components/CustomerDisplay"
+import { useState, useEffect } from "react"
+import dynamic from "next/dynamic"
+
+// Komponentlarni dynamic import qilish (server-side renderingni oldini olish)
+const OperatorDisplay = dynamic(() => import("../components/OperatorDisplay"), { ssr: false })
+const CustomerDisplay = dynamic(() => import("../components/CustomerDisplay"), { ssr: false })
 
 export default function OperatorDisplayPage() {
-  const [currentTickets, setCurrentTickets] = useState({
-    A: null,
-    P: null,
-    X: null,
-  })
+  const [currentTickets, setCurrentTickets] = useState(() => ({
+    A: "",
+    P: "",
+    X: "",
+  }))
   const [recentlyCalled, setRecentlyCalled] = useState([])
 
+  useEffect(() => {
+    setCurrentTickets({ A: "", P: "", X: "" })
+  }, [])
+
   const handleCallNext = (queueType, ticket) => {
-    setCurrentTickets((prev) => ({ ...prev, [queueType]: ticket }))
+    setCurrentTickets((prev) => ({ ...prev, [queueType]: ticket || "" }))
     setRecentlyCalled((prev) => [ticket, ...prev.slice(0, 4)])
   }
 
   const handleFinishCustomer = (queueType) => {
-    setCurrentTickets((prev) => ({ ...prev, [queueType]: null }))
+    setCurrentTickets((prev) => ({ ...prev, [queueType]: "" }))
   }
 
   return (
@@ -35,3 +42,8 @@ export default function OperatorDisplayPage() {
   )
 }
 
+// Default props berish
+CustomerDisplay.defaultProps = {
+  currentTickets: { A: "", P: "", X: "" },
+  recentlyCalled: [],
+}
